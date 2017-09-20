@@ -48,6 +48,6 @@ script:
   - cd lua-cjson && make && sudo PATH=$PATH make install && cd ..
   - export PATH=$PWD/work/nginx/sbin:$PWD/nginx-devel-utils:$PATH
   - ngx-build $NGINX_VERSION --with-ipv6 --with-http_realip_module --with-http_ssl_module --add-module=../lua-nginx-module --with-debug > build.log 2>&1 || (cat build.log && exit 1)
-  - cd lua-resty-core && make && sudo PATH=$PATH make install && cd ..
+  - cd lua-resty-core && make && sudo PATH=$PATH make LUA_LIB_DIR=/opt/luajit21/share/lua/5.1 install && cd ..
   - prove -r t
 
