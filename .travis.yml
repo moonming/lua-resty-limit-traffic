@@ -19,7 +19,6 @@ env:
     - LUA_CMODULE_DIR=/lib
     - TEST_NGINX_MYSQL_PATH=/var/run/mysqld/mysqld.sock
     - TEST_NGINX_SLEEP=0.006
-    - LUA_LIB_DIR=/usr/local/share/lua/5.1
   matrix:
     - NGINX_VERSION=1.9.15
 
@@ -33,13 +32,11 @@ install:
   - git clone https://github.com/openresty/lua-cjson.git
   - git clone https://github.com/openresty/lua-nginx-module.git ../lua-nginx-module
   - git clone https://github.com/openresty/no-pool-nginx.git ../no-pool-nginx
-  - git clone https://github.com/openresty/lua-resty-core.git
 
 script:
   - cd test-nginx && (sudo cpanm . > build.log 2>&1 || (cat build.log && exit 1)) && cd ..
   - cd lua-cjson && make && sudo PATH=$PATH make install && cd ..
   - export PATH=$PWD/work/nginx/sbin:$PWD/nginx-devel-utils:$PATH
   - ngx-build $NGINX_VERSION --with-ipv6 --with-http_realip_module --with-http_ssl_module --add-module=../lua-nginx-module --with-debug > build.log 2>&1 || (cat build.log && exit 1)
-  - cd lua-resty-core && make && sudo PATH=$PATH make install && cd ..
   - prove -r t
 

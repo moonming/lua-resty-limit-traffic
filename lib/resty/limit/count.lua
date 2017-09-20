@@ -7,7 +7,7 @@ local assert = assert
 
 
 local _M = {
-    _VERSION = 'alpha'
+   _VERSION = '0.01'
 }
 
 
@@ -40,7 +40,6 @@ function _M.incoming(self, key, commit)
     local dict = self.dict
     local limit = self.limit
     local window = self.window
-    local now = ngx_time()
 
     local remaining, err
 
@@ -50,7 +49,7 @@ function _M.incoming(self, key, commit)
             return nil, err
         end
         if remaining == limit - 1 then
-            local ok, err = dict:expire(key, now + window)
+            local ok, err = dict:expire(key, window)
             if not ok then
                 return nil, err
             end
@@ -58,9 +57,10 @@ function _M.incoming(self, key, commit)
 
     else
         remaining = (dict:get(key) or 0) - 1
-        if remaining < 0 then
-            return nil, "rejected"
-        end
+    end
+
+    if remaining < 0 then
+        return nil, "rejected"
     end
 
     return 0, remaining

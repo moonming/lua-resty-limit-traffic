@@ -14,6 +14,12 @@ my $pwd = cwd();
 
 our $HttpConfig = <<_EOC_;
     lua_package_path "$pwd/lib/?.lua;;";
+    init_by_lua_block {
+        local v = require "jit.v"
+        -- v.on("/tmp/a.dump")
+        require "resty.core"
+    }
+    lua_shared_dict store 1m;
 _EOC_
 
 no_long_string();
@@ -22,24 +28,13 @@ run_tests();
 __DATA__
 
 === TEST 1: a single key (always commit)
---- http_config eval
-qq{
-$::HttpConfig
-
-    init_by_lua_block {
-        local v = require "jit.v"
-        -- v.on("/tmp/a.dump")
-        require "resty.core"
-    }
-    lua_shared_dict store 1m;
-}
+--- http_config eval: $::HttpConfig
 --- config
     location = /t {
         content_by_lua '
             local limit_count = require "resty.limit.count"
             ngx.shared.store:flush_all()
             local lim = limit_count.new("store", 10, 100)
-            local begin = ngx.time()
             local uri = ngx.var.uri
             for i = 1, 12 do
                 local delay, err = lim:incoming(uri, true)
@@ -74,19 +69,13 @@ rejected
 
 
 === TEST 2: multiple keys
---- http_config eval
-"
-$::HttpConfig
-
-    lua_shared_dict store 1m;
-"
+--- http_config eval: $::HttpConfig
 --- config
     location = /t {
         content_by_lua '
             local limit_count = require "resty.limit.count"
             ngx.shared.store:flush_all()
             local lim = limit_count.new("store", 1, 10)
-            local begin = ngx.time()
             local delay1, err1 = lim:incoming("foo", true)
             local delay2, err2 = lim:incoming("foo", true)
             local delay3, err3 = lim:incoming("bar", true)
@@ -134,19 +123,13 @@ rejected
 
 
 === TEST 3: reset limit window
---- http_config eval
-"
-$::HttpConfig
-
-    lua_shared_dict store 1m;
-"
+--- http_config eval: $::HttpConfig
 --- config
     location = /t {
         content_by_lua '
             local limit_count = require "resty.limit.count"
             ngx.shared.store:flush_all()
             local lim = limit_count.new("store", 1, 1)
-            local begin = ngx.time()
 
             local uri = ngx.var.uri
             for i = 1, 2 do
@@ -183,12 +166,7 @@ rejected
 
 
 === TEST 4: a single key (do not commit since the 3rd time)
---- http_config eval
-"
-$::HttpConfig
-
-    lua_shared_dict store 1m;
-"
+--- http_config eval: $::HttpConfig
 --- config
     location = /t {
         content_by_lua '
@@ -222,12 +200,7 @@ remaining: 2
 
 
 === TEST 5: a single key (commit & uncommit)
---- http_config eval
-"
-$::HttpConfig
-
-    lua_shared_dict store 1m;
-"
+--- http_config eval: $::HttpConfig
 --- config
     location = /t {
         content_by_lua '
@@ -235,7 +208,6 @@ $::HttpConfig
             local lim = limit_count.new("store", 2, 10)
             ngx.shared.store:flush_all()
             local key = "foo"
-            local begin = ngx.time()
             for i = 1, 3 do
                 local delay, err = lim:incoming(key, true)
                 if not delay then
