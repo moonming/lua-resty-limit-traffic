@@ -29,6 +29,7 @@ $::HttpConfig
     init_by_lua_block {
         local v = require "jit.v"
         -- v.on("/tmp/a.dump")
+        require "resty.core"
     }
     lua_shared_dict store 1m;
 }

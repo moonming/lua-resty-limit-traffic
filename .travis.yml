@@ -32,11 +32,13 @@ install:
   - git clone https://github.com/openresty/lua-cjson.git
   - git clone https://github.com/openresty/lua-nginx-module.git ../lua-nginx-module
   - git clone https://github.com/openresty/no-pool-nginx.git ../no-pool-nginx
+  - git clone https://github.com/openresty/lua-resty-core.git ../lua-resty-core
 
 script:
   - cd test-nginx && (sudo cpanm . > build.log 2>&1 || (cat build.log && exit 1)) && cd ..
   - cd lua-cjson && make && sudo PATH=$PATH make install && cd ..
   - export PATH=$PWD/work/nginx/sbin:$PWD/nginx-devel-utils:$PATH
   - ngx-build $NGINX_VERSION --with-ipv6 --with-http_realip_module --with-http_ssl_module --add-module=../lua-nginx-module --with-debug > build.log 2>&1 || (cat build.log && exit 1)
+  - cd lua-resty-core && make && sudo PATH=$PATH make install && cd ..
   - prove -r t
 
