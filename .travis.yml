@@ -19,7 +19,6 @@ env:
     - LUA_CMODULE_DIR=/lib
     - TEST_NGINX_MYSQL_PATH=/var/run/mysqld/mysqld.sock
     - TEST_NGINX_SLEEP=0.006
-    - LUA_LIB_DIR=/usr/local/openresty
   matrix:
     - NGINX_VERSION=1.9.15
 
